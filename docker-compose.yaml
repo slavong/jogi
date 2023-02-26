@@ -1,0 +1,33 @@
+version: "3.8"
+
+networks:
+  default:
+    name: dm20-network
+
+services:
+
+  oracle:
+    image: idsprojektdm20/oracle-ee:19.3.0
+    hostname: oracle
+    container_name: oracle
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+    volumes:
+      - oracle-data-volume:/opt/oracle/oradata
+      - ./oracle/startup:/opt/oracle/scripts/startup
+    environment:
+      ORACLE_SID: ORCL
+      ORACLE_PDB: LOCALDB
+      ORACLE_PWD: s3cr3t
+      ORACLE_EDITION: enterprise
+      ORACLE_CHARACTERSET: AL32UTF8
+      ENABLE_ARCHIVELOG: 'false'
+
+volumes:
+  oracle-data-volume:
+  zk-log-volume:
+  zk-data-volume:
+  kafka-volume:
+  azurite-data-volume:
+  azurite-ws-volume:

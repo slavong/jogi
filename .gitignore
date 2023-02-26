@@ -1,0 +1,11 @@
+.idea/
+__pycache__/
+.mypy_cache/
+.nox/
+.pytest_cache/
+build/
+venv/
+*.egg-info/
+*.log
+*.csv
+*.xlsx
