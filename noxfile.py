@@ -58,7 +58,7 @@ def lint(session):
 
 @nox_poetry.session
 def mypy(session):
-    install_poetry_group(session, "test")
+    install_poetry_group(session, "tests")
     args = ["mypy"]
     args.extend(places)
     session.run(*args)
@@ -66,7 +66,7 @@ def mypy(session):
 
 @nox_poetry.session
 def tests(session):
-    install_poetry_group(session, "test")
+    install_poetry_group(session, "tests")
     sqlite_env = {"DATABASE__ENGINE": "sqlite"}
     session.run("pytest", "tests/unit", env=sqlite_env)
     session.run("pytest", "tests/component", env=sqlite_env)

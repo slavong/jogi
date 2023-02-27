@@ -55,15 +55,29 @@ python -m venv
 poetry install --with=dev
 ```
 
-or if you have already run `install` 
+or if you have already run `install` before
 
 ```bash
 poetry update --with=dev
 ```
 
-TBD add run app
-TBD add run tests
+4. Run the application 
 
-4. Make sure `nox` runs without any issues
+```bash
+./venv/bin/activate
+python src/jogi/main.py
+```
 
-5. Contribute
+5. Run the tests
+
+```bash
+./venv/bin/activate
+poetry update --with=tests
+python -m pytest tests
+```
+
+6. Make sure `nox` runs without any issues
+
+7. Contribute
+
+[//]: # (TODO dummy)
