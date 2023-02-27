@@ -25,6 +25,7 @@ disallow_untyped_defs = true
 [tool.poetry.dependencies]
 python = "^3.10"
 cx-Oracle = "^8.3.0"
+typer = "^0.7.0"
 
 [tool.poetry.group.dev]
 optional = true
