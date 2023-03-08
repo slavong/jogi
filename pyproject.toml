@@ -26,6 +26,8 @@ disallow_untyped_defs = true
 python = "^3.10"
 cx-Oracle = "^8.3.0"
 typer = "^0.7.0"
+pydantic = "^1.10.5"
+pydantic_settings_yaml = "0.1.1"
 
 [tool.poetry.group.dev]
 optional = true
