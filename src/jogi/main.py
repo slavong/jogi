@@ -1,5 +1,5 @@
 import typer
-from config import get_config
+from jogi.config import get_config
 
 app = typer.Typer()
 
