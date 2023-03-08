@@ -78,8 +78,7 @@ def _get_sql(types: Optional[list[str]], names: Optional[list[str]]) -> str:
                 DBMS_METADATA.GET_DDL(
                   object_type=>CASE object_type
                     WHEN 'PACKAGE' THEN 'PACKAGE_SPEC'
-                    WHEN 'PACKAGE BODY' THEN 'PACKAGE_BODY'
-                    ELSE object_type END,
+                    ELSE REPLACE(object_type, ' ', '_') END,
                   name=>object_name,
                   schema=>USER) AS ddl
               FROM user_objects
