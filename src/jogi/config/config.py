@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from pydantic import BaseModel
@@ -14,7 +15,7 @@ class Settings(YamlBaseSettings):
 
     class Config:
         case_sensitive = True
-        yaml_file = "./config.yaml"
+        yaml_file = os.getenv("APP_CONFIG") or "./config.yaml"
 
 
 _config = Settings()

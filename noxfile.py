@@ -67,10 +67,11 @@ def mypy(session):
 @nox_poetry.session
 def tests(session):
     install_poetry_group(session, "tests")
-    sqlite_env = {"DATABASE__ENGINE": "sqlite"}
-    session.run("pytest", "tests/unit", env=sqlite_env)
-    session.run("pytest", "tests/component", env=sqlite_env)
-    session.run("pytest", "tests/integration", env=sqlite_env)
+    env = {"PYTHONPATH": "./src/jogi", "APP_CONFIG": "./tests/config.yaml"}
+    print(os.getcwd())
+    session.run("pytest", "tests/unit", env=env)
+    session.run("pytest", "tests/component", env=env)
+    session.run("pytest", "tests/integration", env=env)
 
 
 @nox_poetry.session
