@@ -4,7 +4,7 @@ from typing import Optional
 
 from cx_Oracle import LOB
 
-from jogi.oracle.oracle import get_connection, get_cursor
+from jogi.oracle.oracle import get_connection, get_cursor, run_plsql_procedure
 
 logger = logging.getLogger(__name__)
 
@@ -44,21 +44,21 @@ def dump_schema(
 
     # TODO: deleted objects? file stays there => cli option?: delete folder/schema/type/file.sql
 
+    cursor.close()
+
 
 def _set_metadata_params() -> None:
-    cursor = get_cursor()
     for keyword in ("STORAGE", "TABLESPACE", "SEGMENT_ATTRIBUTES", "PARTITIONING"):
-        cursor.execute(
-            f"""BEGIN
-                    DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM,'{keyword}',false);
-                END;"""
+        run_plsql_procedure(
+            package="DBMS_METADATA",
+            procedure="SET_TRANSFORM_PARAM",
+            parameters=["DBMS_METADATA.SESSION_TRANSFORM", f"'{keyword}'", "FALSE"],
         )
 
-    cursor.execute(
-        """BEGIN
-               DBMS_METADATA.SET_TRANSFORM_PARAM(
-                   DBMS_METADATA.SESSION_TRANSFORM, 'SQLTERMINATOR', true);
-           END;"""
+    run_plsql_procedure(
+        package="DBMS_METADATA",
+        procedure="SET_TRANSFORM_PARAM",
+        parameters=["DBMS_METADATA.SESSION_TRANSFORM", "'SQLTERMINATOR'", "TRUE"],
     )
 
 
