@@ -24,7 +24,8 @@ def dump(
         default=None, help="Object names with optional wildcards," " e.g. 'EMP%,DEPT'"
     ),
 ) -> None:
-    types_as_list = types.split(",") if types is not None else []
+    types_as_list = types.upper().split(",") if types is not None else []
+    # TODO: validate types against supported
     names_as_list = names.split(",") if names is not None else []
     dump_schema(target_path, username, password, dsn, types_as_list, names_as_list)
 

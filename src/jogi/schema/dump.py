@@ -9,6 +9,7 @@ from jogi.oracle.oracle import get_connection, get_cursor, run_plsql_procedure
 logger = logging.getLogger(__name__)
 
 SQL_EXTENSION = "sql"
+SUPPORTED_OBJECT_TYPES = ("MATERIALIZED VIEW", "PACKAGE", "PACKAGE BODY", "TABLE", "VIEW")
 
 
 def dump_schema(
@@ -25,26 +26,87 @@ def dump_schema(
         logger.info("Exiting ...")
         return
 
+    _dump_schema_to_folder(target_path, types, names)
+
+    _delete_files_for_nonexistent_objects(
+        path=target_path, schema=username, types=types, names=names
+    )
+
+
+def _dump_schema_to_folder(
+    target_path: str, types: Optional[list[str]], names: Optional[list[str]]
+) -> None:
     cursor = get_cursor()
-    if cursor is None:
-        logger.info("Exiting...")
-        return
+    try:
+        if cursor is None:
+            logger.info("Exiting...")
+            return
 
-    _set_metadata_params()
+        _set_metadata_params()
 
-    sql = _get_sql(types, names)
-    cursor.execute(sql)
+        sql = _get_sql(types, names)
+        cursor.execute(sql)
 
-    _create_folder_if_not_exists(target_path)
+        _create_folder_if_not_exists(target_path)
 
-    for row in cursor:
-        schema, object_type, object_name, ddl = row
-        logger.info(f"{schema} {object_type} {object_name}")
-        _save_ddl(target_path, schema, object_type, object_name, ddl)
+        for row in cursor:
+            schema, object_type, object_name, ddl = row
+            logger.info(f"{schema} {object_type} {object_name}")
+            _save_ddl(target_path, schema, object_type, object_name, ddl)
+    finally:
+        cursor.close()
 
-    # TODO: deleted objects? file stays there => cli option?: delete folder/schema/type/file.sql
 
-    cursor.close()
+def _delete_files_for_nonexistent_objects(
+    path: str, schema: str, types: Optional[list[str]], names: Optional[list[str]]
+) -> None:
+    schema_path = os.path.join(path, schema)
+    os.walk(schema_path)
+    for w in os.walk(schema_path):
+        path, folders, files = w
+        if path == schema_path:
+            assert all([tf.upper() in SUPPORTED_OBJECT_TYPES for tf in folders])
+            assert files == []
+        else:
+            _, type = os.path.split(path)
+            type = type.upper()
+            if types and len(types) > 0 and type not in types:
+                continue
+            _cleanup_type_folder(path, type, files)
+
+    pass
+
+
+def _cleanup_type_folder(path: str, object_type: str, files: list[str]) -> None:
+    logger.debug(f"Cleaning up folder {path} with files {files} for type {object_type}...")
+    for file in files:
+        logger.debug(f"Checking file {file} ...")
+        name, ext = file.split(".")
+        assert ext == SQL_EXTENSION
+        cursor = get_cursor()
+        try:
+            sql = f"""SELECT COUNT(1) AS c
+                      FROM user_objects
+                      WHERE object_type = '{object_type}'
+                        AND object_name = '{name}'
+                """
+            cursor.execute(sql)
+            rows = list(cursor)
+            assert len(rows) == 1
+            row = rows[0]
+            assert len(row) == 1
+            c = row[0]
+            assert c in (0, 1)
+            match c:
+                case 0:
+                    file_path = os.path.join(path, file)
+                    logger.info(f"Deleting file {file_path}")
+                    os.remove(file_path)
+                case 1:
+                    pass
+        finally:
+            cursor.close()
+    pass
 
 
 def _set_metadata_params() -> None:
