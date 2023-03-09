@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Optional
 
-import cx_Oracle
+from cx_Oracle import LOB
 
 from jogi.oracle.oracle import get_connection, get_cursor
 
@@ -63,17 +63,6 @@ def _set_metadata_params() -> None:
 
 
 def _get_sql(types: Optional[list[str]], names: Optional[list[str]]) -> str:
-    where_object_type = "1=1"
-    if types:
-        types_upper = [t.upper() for t in types]
-        types_as_str = "'" + "','".join(types_upper) + "'"
-        where_object_type = f"object_type IN ({types_as_str})"
-
-    where_object_name = "1=1"
-    if names:
-        name_conditions = [f"object_name LIKE '{n}'" for n in names]
-        where_object_name = "\n OR ".join(name_conditions)
-
     sql = f"""SELECT USER AS schema, object_type, object_name,
                 DBMS_METADATA.GET_DDL(
                   object_type=>CASE object_type
@@ -83,20 +72,35 @@ def _get_sql(types: Optional[list[str]], names: Optional[list[str]]) -> str:
                   schema=>USER) AS ddl
               FROM user_objects
               WHERE 1=1
-                AND {where_object_type}
-                AND ({where_object_name})
+                AND {_get_object_type_condition(types)}
+                AND ({_get_object_name_condition(names)})
               ORDER BY object_type, object_name"""
     logger.debug(sql)
     return sql
+
+
+def _get_object_type_condition(types: Optional[list[str]]) -> str:
+    if not types:
+        return "1=1"
+    types_upper = [t.upper() for t in types]
+    types_as_str = "'" + "','".join(types_upper) + "'"
+    where_object_type = f"object_type IN ({types_as_str})"
+    return where_object_type
+
+
+def _get_object_name_condition(names: Optional[list[str]]) -> str:
+    if not names:
+        return "1=1"
+    name_conditions = [f"object_name LIKE '{n}' ESCAPE '\\'" for n in names]
+    where_object_name = "\n OR ".join(name_conditions)
+    return where_object_name
 
 
 def _create_folder_if_not_exists(folder: str) -> None:
     os.makedirs(folder, exist_ok=True)
 
 
-def _save_ddl(
-    target_path: str, schema: str, object_type: str, object_name: str, ddl: cx_Oracle.LOB
-) -> None:
+def _save_ddl(target_path: str, schema: str, object_type: str, object_name: str, ddl: LOB) -> None:
     folder_path = os.path.join(target_path, schema.lower(), object_type.lower())
     os.makedirs(folder_path, exist_ok=True)
     file_path = os.path.join(folder_path, f"{object_name}.{SQL_EXTENSION}")
