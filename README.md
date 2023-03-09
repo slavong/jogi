@@ -1,5 +1,7 @@
 # jogi - Just Oracle Git Integration
 
+![github actions](https://github.com/slavong/jogi/actions/workflows/python-app.yml/badge.svg)
+
 This project provides integration between Oracle Database and `git` using a repository with .
 
 - Why "just"?
