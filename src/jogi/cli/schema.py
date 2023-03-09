@@ -27,9 +27,7 @@ def dump(
     types_as_list = types.upper().split(",") if types is not None else []
     for type in types_as_list:
         if type not in SUPPORTED_OBJECT_TYPES:
-            raise ValueError(
-                f"Type provided as parameter must be one of the supported object types"
-            )
+            raise ValueError("Type provided as parameter must be one of the supported object types")
     names_as_list = names.split(",") if names is not None else []
     dump_schema(target_path, username, password, dsn, types_as_list, names_as_list)
 
